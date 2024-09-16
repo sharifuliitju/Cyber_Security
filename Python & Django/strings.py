@@ -36,5 +36,3 @@ print("\n---------")
 f = "24.43"
 print(f.isdigit())
 print(f.isnumeric())
-
-
