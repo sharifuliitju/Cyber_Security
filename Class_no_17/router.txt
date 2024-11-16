@@ -1,0 +1,274 @@
+Savar-RTR#sh run
+Building configuration...
+
+Current configuration : 5577 bytes
+!
+! Last configuration change at 07:56:59 UTC Tue May 28 2019
+version 15.3
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname Savar-RTR
+!
+boot-start-marker
+boot-end-marker
+!
+aqm-register-fnf
+!
+enable secret 5 $1$4DME$nGep2C6v1IyX6DT3f14UT1
+!
+no aaa new-model
+!
+!
+!
+!
+!
+!
+
+
+!
+!
+!
+!
+ip cef
+no ipv6 cef
+!
+!
+!
+!
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+license udi pid C891F-K9 sn FGL224311Y3
+!
+!
+!
+!
+!
+!
+!
+!
+!
+crypto isakmp policy 10
+ encr 3des
+ hash md5
+ authentication pre-share
+ group 2
+crypto isakmp key 6 s!la1nb! address 10.169.168.2
+crypto isakmp key 6 s!la1nb! address 10.169.168.10
+crypto isakmp key 6 s!la1nb!1 address 10.220.168.10
+crypto isakmp key 6 s!la1nb! address 10.66.3.30
+crypto isakmp key 6 s!la1nb! address 10.66.4.170
+crypto isakmp key 6 s!la1nb!1 address 10.52.11.90
+!
+!
+crypto ipsec transform-set set1 esp-3des esp-md5-hmac
+ mode tunnel
+!
+!
+!
+crypto map Link3 10 ipsec-isakmp
+ description ###  Savar ###
+ set peer 10.66.3.30
+ set peer 10.66.4.170
+ set peer 10.52.11.90
+ set transform-set set1
+ match address Savar_Link3
+!
+crypto map SQUARE 10 ipsec-isakmp
+ description ###  Savar ###
+ set peer 10.169.168.2
+ set peer 10.169.168.10
+ set peer 10.220.168.10
+ set transform-set set1
+ match address Savar_SQUARE
+!
+!
+!
+!
+!
+!
+interface Tunnel30149
+ description ### Core A SQUARE ###
+ ip address 172.20.149.18 255.255.255.252
+ ip ospf cost 1400
+ keepalive 10 3
+ tunnel source 10.250.201.14
+ tunnel destination 10.169.168.2
+!
+interface Tunnel10149
+ description ### Core A Link3 ###
+ ip address 172.20.149.2 255.255.255.252
+ ip ospf cost 1000
+ keepalive 10 3
+ tunnel source 10.52.11.38
+ tunnel destination 10.66.3.30
+!
+interface Tunnel330149
+ description ### Core B_SQUARE ###
+ ip address 172.20.149.22 255.255.255.252
+ ip ospf cost 2000
+ keepalive 10 3
+ tunnel source 10.250.201.14
+ tunnel destination 10.169.168.10
+!
+
+interface Tunnel110149
+ description ### Core B Link3 ###
+ ip address 172.20.149.6 255.255.255.252
+ ip ospf cost 2200
+ keepalive 10 3
+ tunnel source 10.52.11.38
+ tunnel destination 10.66.4.170
+!
+interface Tunnel3330149
+ description ### DR_SQUARE ###
+ ip address 172.20.149.118 255.255.255.252
+ ip ospf cost 3000
+ keepalive 10 3
+ tunnel source 10.250.201.14
+ tunnel destination 10.220.168.10
+!
+interface Tunnel1110149
+ description ### DR_Link3 ###
+ ip address 172.20.149.102 255.255.255.252
+ ip ospf cost 3300
+ keepalive 10 3
+ tunnel source 10.52.11.38
+ tunnel destination 10.52.11.90
+!
+interface BRI0
+ no ip address
+ encapsulation hdlc
+ shutdown
+ isdn termination multidrop
+!
+interface FastEthernet0
+ description Connected to Link3
+ ip address 10.52.11.38 255.255.255.252
+ duplex auto
+ speed auto
+ crypto map Link3
+!
+interface GigabitEthernet0
+ no ip address
+!
+interface GigabitEthernet1
+ no ip address
+!
+interface GigabitEthernet2
+ no ip address
+!
+interface GigabitEthernet3
+ no ip address
+!
+interface GigabitEthernet4
+ no ip address
+!
+interface GigabitEthernet5
+ no ip address
+!
+interface GigabitEthernet6
+ no ip address
+!
+interface GigabitEthernet7
+ switchport access vlan 2
+ no ip address
+!
+interface GigabitEthernet8
+ description Connected to SQUARE
+ ip address 10.250.201.14 255.255.255.252
+ duplex auto
+ speed auto
+ crypto map SQUARE
+!
+interface Vlan2
+ ip address 192.168.149.5 255.255.255.0
+ ip tcp adjust-mss 1360
+!
+interface Async3
+ no ip address
+ encapsulation slip
+!
+router ospf 10
+ area 145 nssa no-summary
+ area 146 nssa no-summary
+ area 30487 nssa no-summary
+ area 30488 nssa no-summary
+ area 40245 nssa no-summary
+ area 40246 nssa no-summary
+ redistribute connected metric 10 subnets
+ network 172.20.149.0 0.0.0.3 area 146
+ network 172.20.149.16 0.0.0.3 area 145
+ network 172.20.149.4 0.0.0.3 area 30487
+ network 172.20.149.20 0.0.0.3 area 30488
+ network 172.20.149.102 0.0.0.3 area 40245
+ network 172.20.149.116 0.0.0.3 area 40246
+!
+ip forward-protocol nd
+no ip http server
+no ip http secure-server
+!
+!
+ip route 10.169.168.0 255.255.255.248 10.250.201.13 name Core-A_SQUARE
+ip route 10.169.168.8 255.255.255.252 10.250.201.13 name Core-B-SQUARE
+ip route 10.220.168.8 255.255.255.252 10.250.201.13 name SQUARE-DR
+ip route 10.66.3.28 255.255.255.252 10.52.11.37 name COARE_A_Link3
+ip route 10.66.4.168 255.255.255.252 10.52.11.37 name COARE_B_Link3
+ip route 10.52.11.88 255.255.255.252 10.52.11.37 name Link3-DR
+!
+ip access-list extended Savar_Link3
+ permit gre host 10.52.11.38 host 10.66.3.30
+ permit gre host 10.52.11.38 host 10.66.4.170
+ permit gre host 10.52.11.38 host 10.52.11.90
+ip access-list extended Savar_SQUARE
+ permit gre host 10.250.201.14 host 10.169.168.2
+ permit gre host 10.250.201.14 host 10.169.168.10
+ permit gre host 10.250.201.14 host 10.220.168.10
+!
+
+#done--------------------------------------------
+!
+snmp-server community conf_123 RO
+snmp-server community public RO
+snmp-server enable traps snmp linkdown linkup coldstart warmstart
+!
+control-plane
+!
+!
+!
+mgcp behavior rsip-range tgcp-only
+mgcp behavior comedia-role none
+mgcp behavior comedia-check-media-src disable
+mgcp behavior comedia-sdp-force disable
+!
+mgcp profile default
+!
+!
+!
+!
+!
+line con 0
+ password abc123
+ login
+ no modem enable
+line aux 0
+line 3
+ modem InOut
+ speed 115200
+ flowcontrol hardware
+line vty 0 4
+ password abc123
+ login
+ transport input all
+!
+scheduler allocate 20000 1000
+!
+end
